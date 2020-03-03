@@ -1,1 +1,1 @@
-# sapient-gateway-server
+# gateway-server
