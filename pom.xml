@@ -17,6 +17,8 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<spring-cloud.version>Hoxton.SR1</spring-cloud.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <resource.directory>src/main/resources</resource.directory>
 	</properties>
 
 	<dependencies>
@@ -52,6 +54,30 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
+	
+	<profiles>
+		<profile>
+			<id>dev</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<server.port>8086</server.port>
+				<boot.profile>dev</boot.profile>
+				<eureka.defaultzone>http://127.0.0.1:8085/eureka/</eureka.defaultzone>
+				<instance.ip>127.0.0.1</instance.ip>
+			</properties>
+		</profile>
+		<profile>
+			<id>docker</id>
+			<properties>
+				<server.port>8086</server.port>
+				<boot.profile>docker</boot.profile>
+				<eureka.defaultzone>http://172.17.0.1:8085/eureka/</eureka.defaultzone>
+				<instance.ip>172.17.0.1</instance.ip>
+			</properties>
+		</profile>
+	</profiles>
 
 	<build>
 		<plugins>
@@ -59,7 +85,22 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<!-- specify UTF-8, ISO-8859-1 or any other file encoding -->
+					<encoding>${project.build.sourceEncoding}</encoding>
+				</configuration>
+			</plugin>
 		</plugins>
+		<resources>
+			<!-- https://examples.javacodegeeks.com/enterprise-java/spring/loading-environment-specific-configurations-properties-spring-using-maven-profiles-xml-settings-file-example -->
+			<resource>
+				<directory>${resource.directory}</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 	</build>
 
 </project>
