@@ -5,6 +5,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
 /**
  * 
  * @author Atanu Bhowmick
@@ -12,6 +14,7 @@ import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
  */
 @EnableZuulProxy
 @EnableEurekaClient
+@EnableSwagger2
 @SpringBootApplication
 public class GatewayServer {
 

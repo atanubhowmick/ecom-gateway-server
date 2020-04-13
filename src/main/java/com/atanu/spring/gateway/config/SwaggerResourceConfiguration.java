@@ -22,9 +22,8 @@ import springfox.documentation.swagger.web.SwaggerResourcesProvider;
  */
 @Component
 @Primary
-public class SwaggerResourceConfiguration implements SwaggerResourcesProvider{
+public class SwaggerResourceConfiguration implements SwaggerResourcesProvider {
 
-	
 	@Override
 	public List<SwaggerResource> get() {
 		List<SwaggerResource> resources = new ArrayList<>();
@@ -33,7 +32,7 @@ public class SwaggerResourceConfiguration implements SwaggerResourcesProvider{
 		resources.add(getSwaggerResource("payment-svc", "/payment/v2/api-docs", "1.0"));
 		return resources;
 	}
-	
+
 	/**
 	 * 
 	 * @param name
