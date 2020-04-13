@@ -6,7 +6,6 @@ package com.atanu.spring.gateway.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +13,10 @@ import springfox.documentation.swagger.web.SwaggerResource;
 import springfox.documentation.swagger.web.SwaggerResourcesProvider;
 
 /**
+ * https://stackoverflow.com/questions/44636575/swagger-consolidation-for-multiple-microservices
+ * <br>
+ * https://github.com/GnanaJeyam/microservice-patterns
+ * 
  * @author Atanu Bhowmick
  *
  */
