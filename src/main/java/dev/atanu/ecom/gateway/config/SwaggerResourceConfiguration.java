@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.atanu.spring.gateway.config;
+package dev.atanu.ecom.gateway.config;
 
 import java.util.ArrayList;
 import java.util.List;

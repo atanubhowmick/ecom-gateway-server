@@ -1,4 +1,4 @@
-package com.atanu.spring.gateway;
+package dev.atanu.ecom.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
