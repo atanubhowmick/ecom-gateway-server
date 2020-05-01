@@ -27,9 +27,10 @@ public class SwaggerResourceConfiguration implements SwaggerResourcesProvider {
 	@Override
 	public List<SwaggerResource> get() {
 		List<SwaggerResource> resources = new ArrayList<>();
-		resources.add(getSwaggerResource("product-svc", "/product/v2/api-docs", "1.0"));
-		resources.add(getSwaggerResource("cart-svc", "/cart/v2/api-docs", "1.0"));
-		resources.add(getSwaggerResource("payment-svc", "/payment/v2/api-docs", "1.0"));
+		resources.add(getSwaggerResource("product-svc", "/product/v2/api-docs", "2.0"));
+		resources.add(getSwaggerResource("cart-svc", "/cart/v2/api-docs", "2.0"));
+		resources.add(getSwaggerResource("order-svc", "/order/v2/api-docs", "2.0"));
+		resources.add(getSwaggerResource("payment-svc", "/payment/v2/api-docs", "2.0"));
 		return resources;
 	}
 
