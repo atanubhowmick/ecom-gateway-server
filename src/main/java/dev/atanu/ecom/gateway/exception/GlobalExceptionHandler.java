@@ -34,8 +34,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(GatewayException.class)
 	public ResponseEntity<GenericResponse<?>> handleProductException(GatewayException ex) {
 		logger.error("Handling Product Exception... ", ex);
-		ErrorResponse error = new ErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), ex.getHttpStatus(),
-				ex.getHttpStatus().value());
+		ErrorResponse error = new ErrorResponse(ex.getErrorCode(), ex.getErrorMessage(), ex.getHttpStatus());
 		GenericResponse<?> response = new GenericResponse<>(false, null, error);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
@@ -50,7 +49,7 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<GenericResponse<?>> handleException(Exception ex) {
 		logger.error("Handling Exception... ", ex);
 		ErrorResponse error = new ErrorResponse(UNEXPECTED_ERROR_CODE, UNEXPECTED_ERROR_MSG,
-				HttpStatus.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR.value());
+				HttpStatus.INTERNAL_SERVER_ERROR);
 		GenericResponse<?> response = new GenericResponse<>(false, null, error);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
