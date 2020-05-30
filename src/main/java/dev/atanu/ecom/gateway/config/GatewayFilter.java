@@ -139,6 +139,7 @@ public class GatewayFilter extends ZuulFilter {
 	}
 
 	/**
+	 * Generate error response with error code and error message
 	 * 
 	 * @param errorCode
 	 * @param httpStatus

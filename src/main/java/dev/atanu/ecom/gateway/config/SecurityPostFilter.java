@@ -3,6 +3,7 @@
  */
 package dev.atanu.ecom.gateway.config;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +32,6 @@ import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.dto.ErrorResponse;
 import dev.atanu.ecom.gateway.dto.GenericResponse;
 import dev.atanu.ecom.gateway.security.RSASecurityUtil;
-import dev.atanu.ecom.gateway.security.RandomStringGenerator;
 import dev.atanu.ecom.gateway.security.SecurityConstant;
 import dev.atanu.ecom.gateway.security.SecurityKeyDetails;
 import dev.atanu.ecom.gateway.util.GatewayUtil;
@@ -51,6 +51,8 @@ public class SecurityPostFilter extends ZuulFilter {
 
 	@Value("${encrypt.response}")
 	private boolean encryptResponse;
+
+	private String offset = null;
 
 	private static final Logger logger = LoggerFactory.getLogger(SecurityPostFilter.class);
 
@@ -84,7 +86,7 @@ public class SecurityPostFilter extends ZuulFilter {
 	public int filterOrder() {
 		// Any number must not be conflicting with existing filter order
 		// Look into RibbonRoutingFilter for more information
-		return 101;
+		return 102;
 	}
 
 	/**
@@ -92,26 +94,24 @@ public class SecurityPostFilter extends ZuulFilter {
 	 * @param context
 	 */
 	private void setPublicKey(RequestContext context) {
+		HttpServletResponse httpResponse = context.getResponse();
 		try {
-			SecurityKeyDetails keyDetails = RSASecurityUtil.getSecurityDetails();
-			IMap<String, String> keyMap = hazelcastInstance.getMap(SecurityConstant.SECURITY_KEY_MAP);
-			String randomStr = RandomStringGenerator.getRandomString(SecurityConstant.RANDOM_KEY_LENGTH);
-			while (keyMap.containsKey(randomStr)) {
-				randomStr = RandomStringGenerator.getRandomString(SecurityConstant.RANDOM_KEY_LENGTH);
+			SecurityKeyDetails keyDetails = RSASecurityUtil.generateKeys();
+			offset = keyDetails.getOffset();
+			IMap<String, SecurityKeyDetails> keyMap = hazelcastInstance.getMap(SecurityConstant.SECURITY_KEY_MAP);
+			while (keyMap.containsKey(offset)) {
+				keyDetails = RSASecurityUtil.generateKeys();
 			}
-			context.addZuulResponseHeader("offset", randomStr);
-			context.addZuulResponseHeader("pk", keyDetails.getPublicKey());
-			keyMap.lock(randomStr);
-			keyMap.put(randomStr, keyDetails.getPrivateKey(), 2L, TimeUnit.HOURS);
-			keyMap.unlock(randomStr);
+			httpResponse.setHeader("signature", keyDetails.getSignature());
+			httpResponse.setHeader("publicKey", keyDetails.getPublicKeyString());
+			keyMap.lock(offset);
+			keyMap.put(offset, keyDetails, 2L, TimeUnit.HOURS);
+			keyMap.unlock(offset);
 		} catch (Exception e) {
 			logger.error("Unable set public key in response header", e);
 			context.setSendZuulResponse(false);
 			context.setResponseBody(this.generateErrorResponse(ErrorCode.GATEWAY_S001, HttpStatus.BAD_GATEWAY));
-			HttpServletResponse httpResponse = context.getResponse();
-			if (httpResponse != null) {
-				httpResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
-			}
+			httpResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		}
 	}
 
@@ -121,16 +121,17 @@ public class SecurityPostFilter extends ZuulFilter {
 	 */
 	private void encryptResponse(RequestContext context) throws IOException {
 		HttpServletRequest request = context.getRequest();
-		InputStream in = request.getInputStream();
+		InputStream in = (InputStream) context.get("requestEntity");
 		if (in == null) {
 			in = request.getInputStream();
 		}
 		String body = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
 		logger.info("Request Body : {}", body);
-
+		context.set("requestEntity", new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8)));
 	}
 
 	/**
+	 * Generate error response with error code and error message
 	 * 
 	 * @param errorCode
 	 * @param httpStatus

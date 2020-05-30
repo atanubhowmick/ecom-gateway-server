@@ -3,11 +3,13 @@
  */
 package dev.atanu.ecom.gateway.config;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,17 +17,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.netflix.zuul.filters.support.FilterConstants;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
 import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
 import com.netflix.zuul.ZuulFilter;
 import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
 
 import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.dto.ErrorResponse;
+import dev.atanu.ecom.gateway.dto.GatewayRequest;
 import dev.atanu.ecom.gateway.dto.GenericResponse;
+import dev.atanu.ecom.gateway.security.RSASecurityUtil;
+import dev.atanu.ecom.gateway.security.SecurityConstant;
+import dev.atanu.ecom.gateway.security.SecurityKeyDetails;
 import dev.atanu.ecom.gateway.util.GatewayUtil;
 
 /**
@@ -54,12 +62,8 @@ public class SecurityPreFilter extends ZuulFilter {
 	@Override
 	public Object run() throws ZuulException {
 		RequestContext context = RequestContext.getCurrentContext();
-		try {
-			if(decryptRequest) {
-				this.decryptRequest(context);
-			}
-		} catch (IOException e) {
-			logger.error("Exception occured..", e);
+		if (decryptRequest) {
+			this.decryptRequest(context);
 		}
 		return null;
 	}
@@ -80,18 +84,41 @@ public class SecurityPreFilter extends ZuulFilter {
 	 * @param context
 	 * @throws IOException
 	 */
-	private void decryptRequest(RequestContext context) throws IOException {
+	private void decryptRequest(RequestContext context) {
 		HttpServletRequest request = context.getRequest();
-		InputStream in = request.getInputStream();
-		if (in == null) {
-			in = request.getInputStream();
+		HttpServletResponse response = context.getResponse();
+		try {
+			InputStream in = (InputStream) context.get("requestEntity");
+			if (in == null) {
+				in = request.getInputStream();
+			}
+			if (in != null) {
+				String body = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
+				logger.info("Request Body : {}", body);
+				GatewayRequest gatewayRequest = GatewayUtil.toObject(body, GatewayRequest.class);
+				IMap<String, SecurityKeyDetails> keyMap = hazelcastInstance.getMap(SecurityConstant.SECURITY_KEY_MAP);
+				if (keyMap.containsKey(gatewayRequest.getOffset())) {
+					SecurityKeyDetails keyDetails = keyMap.get(gatewayRequest.getOffset());
+					keyMap.remove(gatewayRequest.getOffset());
+					String requestBody = RSASecurityUtil.decrypt(body, keyDetails.getPrivateKey());
+					context.set("requestEntity",
+							new ByteArrayInputStream(requestBody.getBytes(StandardCharsets.UTF_8)));
+				} else {
+					logger.error("Key details expired from cache");
+					context.setSendZuulResponse(false);
+					context.setResponseBody(this.generateErrorResponse(ErrorCode.GATEWAY_E003, HttpStatus.FORBIDDEN));
+					response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+				}
+			}
+		} catch (Exception e) {
+			logger.error("Unable to decrypt request body", e);
+			context.setSendZuulResponse(false);
+			context.setResponseBody(this.generateErrorResponse(ErrorCode.GATEWAY_S003, HttpStatus.BAD_REQUEST));
 		}
-		String body = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
-		logger.info("Request Body : {}", body);
-
 	}
 
 	/**
+	 * Generate error response with error code and error message
 	 * 
 	 * @param errorCode
 	 * @param httpStatus

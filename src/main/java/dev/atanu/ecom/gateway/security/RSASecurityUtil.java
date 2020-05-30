@@ -36,18 +36,31 @@ public class RSASecurityUtil {
 		// Private Constructor
 	}
 
+	public static void main(String[] args) {
+		SecurityKeyDetails details = generateKeys();
+		System.out.println(details);
+	}
+
 	/**
 	 * 
 	 * @return {@link SecurityKeyDetails}
 	 */
-	public static SecurityKeyDetails getSecurityDetails() {
+	public static SecurityKeyDetails generateKeys() {
 		KeyPair keyPair = generateKeyPair();
 		byte[] publicKeybyte = keyPair.getPublic().getEncoded();
 		byte[] privateKeybyte = keyPair.getPrivate().getEncoded();
 
 		SecurityKeyDetails keyDetails = new SecurityKeyDetails();
-		keyDetails.setPublicKey(Base64.getEncoder().encodeToString(publicKeybyte));
-		keyDetails.setPrivateKey(Base64.getEncoder().encodeToString(privateKeybyte));
+		keyDetails.setPublicKey(keyPair.getPublic());
+		keyDetails.setPrivateKey(keyPair.getPrivate());
+		keyDetails.setAlgorithm(SecurityConstant.ENCRYPTION_ALGORITHM_RSA);
+		keyDetails.setKeySize(SecurityConstant.ENCRYPTION_LENGTH);
+		keyDetails.setPublicKeyString(Base64.getEncoder().encodeToString(publicKeybyte));
+		keyDetails.setPrivateKeyString(Base64.getEncoder().encodeToString(privateKeybyte));
+		String randomString = RandomStringGenerator.getRandomString(SecurityConstant.OFFSET_LENGTH);
+		keyDetails.setSignature(sign(randomString, keyPair.getPrivate()));
+		keyDetails.setOffset(RandomStringGenerator.getRandomString(64));
+
 		return keyDetails;
 	}
 
@@ -59,7 +72,7 @@ public class RSASecurityUtil {
 	private static KeyPair generateKeyPair() {
 		try {
 			KeyPairGenerator generator = KeyPairGenerator.getInstance(SecurityConstant.ENCRYPTION_ALGORITHM_RSA);
-			generator.initialize(2048, new SecureRandom());
+			generator.initialize(SecurityConstant.ENCRYPTION_LENGTH, new SecureRandom());
 			return generator.generateKeyPair();
 		} catch (NoSuchAlgorithmException e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S001.name(), ErrorCode.GATEWAY_S001.getErrorMsg(), e);
@@ -111,7 +124,7 @@ public class RSASecurityUtil {
 	 * @param privateKey
 	 * @return Signed String
 	 */
-	public static String sign(String plainText, PrivateKey privateKey) {
+	private static String sign(String plainText, PrivateKey privateKey) {
 		try {
 			Signature privateSignature = Signature.getInstance(SecurityConstant.SIGNATURE_RSA_SHA);
 			privateSignature.initSign(privateKey);
