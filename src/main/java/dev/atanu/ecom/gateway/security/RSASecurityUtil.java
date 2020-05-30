@@ -24,6 +24,9 @@ import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.exception.GatewayException;
 
 /**
+ * Class for RSA Security <br>
+ * {@link https://niels.nu/blog/2016/java-rsa.html}
+ * 
  * @author Atanu Bhowmick
  *
  */
@@ -34,13 +37,28 @@ public class RSASecurityUtil {
 	}
 
 	/**
+	 * 
+	 * @return {@link SecurityKeyDetails}
+	 */
+	public static SecurityKeyDetails getSecurityDetails() {
+		KeyPair keyPair = generateKeyPair();
+		byte[] publicKeybyte = keyPair.getPublic().getEncoded();
+		byte[] privateKeybyte = keyPair.getPrivate().getEncoded();
+
+		SecurityKeyDetails keyDetails = new SecurityKeyDetails();
+		keyDetails.setPublicKey(Base64.getEncoder().encodeToString(publicKeybyte));
+		keyDetails.setPrivateKey(Base64.getEncoder().encodeToString(privateKeybyte));
+		return keyDetails;
+	}
+
+	/**
 	 * Generate Public & Private Key Pair
 	 * 
 	 * @return {@link KeyPair}
 	 */
-	public static KeyPair generateKeyPair() {
+	private static KeyPair generateKeyPair() {
 		try {
-			KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+			KeyPairGenerator generator = KeyPairGenerator.getInstance(SecurityConstant.ENCRYPTION_ALGORITHM_RSA);
 			generator.initialize(2048, new SecureRandom());
 			return generator.generateKeyPair();
 		} catch (NoSuchAlgorithmException e) {
@@ -57,7 +75,7 @@ public class RSASecurityUtil {
 	 */
 	public static String encrypt(String plainText, PublicKey publicKey) {
 		try {
-			Cipher encryptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher encryptCipher = Cipher.getInstance(SecurityConstant.ENCRYPTION_PADDING_RSA);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			byte[] cipherText = encryptCipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 			return Base64.getEncoder().encodeToString(cipherText);
@@ -77,7 +95,7 @@ public class RSASecurityUtil {
 	public static String decrypt(String cipherText, PrivateKey privateKey) {
 		try {
 			byte[] bytes = Base64.getDecoder().decode(cipherText);
-			Cipher decriptCipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+			Cipher decriptCipher = Cipher.getInstance(SecurityConstant.DECRYPTION_PADDING_RSA);
 			decriptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 			return new String(decriptCipher.doFinal(bytes), StandardCharsets.UTF_8);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
@@ -95,12 +113,10 @@ public class RSASecurityUtil {
 	 */
 	public static String sign(String plainText, PrivateKey privateKey) {
 		try {
-			Signature privateSignature = Signature.getInstance("SHA256withRSA");
+			Signature privateSignature = Signature.getInstance(SecurityConstant.SIGNATURE_RSA_SHA);
 			privateSignature.initSign(privateKey);
 			privateSignature.update(plainText.getBytes(StandardCharsets.UTF_8));
-
 			byte[] signature = privateSignature.sign();
-
 			return Base64.getEncoder().encodeToString(signature);
 		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S003.name(), ErrorCode.GATEWAY_S003.getErrorMsg(), e);
@@ -113,19 +129,17 @@ public class RSASecurityUtil {
 	 * @param plainText
 	 * @param signature
 	 * @param publicKey
-	 * @return
+	 * @return boolean - verifiedSign
 	 */
 	public static boolean verify(String plainText, String signature, PublicKey publicKey) {
 		try {
-			Signature publicSignature = Signature.getInstance("SHA256withRSA");
+			Signature publicSignature = Signature.getInstance(SecurityConstant.SIGNATURE_RSA_SHA);
 			publicSignature.initVerify(publicKey);
 			publicSignature.update(plainText.getBytes(StandardCharsets.UTF_8));
-
 			byte[] signatureBytes = Base64.getDecoder().decode(signature);
-
 			return publicSignature.verify(signatureBytes);
 		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-			throw new GatewayException(ErrorCode.GATEWAY_S003.name(), ErrorCode.GATEWAY_S003.getErrorMsg(), e);
+			throw new GatewayException(ErrorCode.GATEWAY_S004.name(), ErrorCode.GATEWAY_S004.getErrorMsg(), e);
 		}
 	}
 }
