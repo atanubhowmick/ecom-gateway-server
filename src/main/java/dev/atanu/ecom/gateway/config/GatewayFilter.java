@@ -27,9 +27,9 @@ import com.netflix.zuul.context.RequestContext;
 import com.netflix.zuul.exception.ZuulException;
 
 import dev.atanu.ecom.gateway.constant.ErrorCode;
+import dev.atanu.ecom.gateway.constant.GatewayConstant;
 import dev.atanu.ecom.gateway.dto.ErrorResponse;
 import dev.atanu.ecom.gateway.dto.GenericResponse;
-import dev.atanu.ecom.gateway.exception.GatewayConstant;
 import dev.atanu.ecom.gateway.util.GatewayUtil;
 
 /**

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package dev.atanu.ecom.gateway.exception;
+package dev.atanu.ecom.gateway.constant;
 
 /**
  * @author Atanu Bhowmick

@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import dev.atanu.ecom.gateway.constant.ErrorCode;
-import dev.atanu.ecom.gateway.exception.GatewayConstant;
+import dev.atanu.ecom.gateway.constant.GatewayConstant;
 import dev.atanu.ecom.gateway.exception.GatewayException;
 
 /**
