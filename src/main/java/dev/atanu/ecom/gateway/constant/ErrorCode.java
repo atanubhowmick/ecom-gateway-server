@@ -14,7 +14,7 @@ public enum ErrorCode {
 	GATEWAY_E003("Session timeout"),
 	
 	// Security Error Code
-	GATEWAY_S001("Unable to generate Security Keys"),
+	GATEWAY_S001("Unable to generate Security Key(s)"),
 	GATEWAY_S002("Unable to encrypt the given text/file"),
 	GATEWAY_S003("Unable to decrypt the given text/file"),
 	GATEWAY_S004("Unable to sign"),
