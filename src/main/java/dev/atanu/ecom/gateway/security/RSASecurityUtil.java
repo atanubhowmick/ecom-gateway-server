@@ -4,7 +4,6 @@
 package dev.atanu.ecom.gateway.security;
 
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -12,13 +11,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
-import java.security.SignatureException;
 import java.util.Base64;
 
-import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.exception.GatewayException;
@@ -34,11 +29,6 @@ public class RSASecurityUtil {
 
 	private RSASecurityUtil() {
 		// Private Constructor
-	}
-
-	public static void main(String[] args) {
-		SecurityKeyDetails details = generateKeys();
-		System.out.println(details);
 	}
 
 	/**
@@ -92,8 +82,7 @@ public class RSASecurityUtil {
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			byte[] cipherText = encryptCipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 			return Base64.getEncoder().encodeToString(cipherText);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
-				| BadPaddingException e) {
+		} catch (Exception e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S002.name(), ErrorCode.GATEWAY_S002.getErrorMsg(), e);
 		}
 	}
@@ -111,8 +100,7 @@ public class RSASecurityUtil {
 			Cipher decriptCipher = Cipher.getInstance(SecurityConstant.DECRYPTION_PADDING_RSA);
 			decriptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 			return new String(decriptCipher.doFinal(bytes), StandardCharsets.UTF_8);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException
-				| BadPaddingException e) {
+		} catch (Exception e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S003.name(), ErrorCode.GATEWAY_S003.getErrorMsg(), e);
 		}
 	}
@@ -131,7 +119,7 @@ public class RSASecurityUtil {
 			privateSignature.update(plainText.getBytes(StandardCharsets.UTF_8));
 			byte[] signature = privateSignature.sign();
 			return Base64.getEncoder().encodeToString(signature);
-		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+		} catch (Exception e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S003.name(), ErrorCode.GATEWAY_S003.getErrorMsg(), e);
 		}
 	}
@@ -151,7 +139,7 @@ public class RSASecurityUtil {
 			publicSignature.update(plainText.getBytes(StandardCharsets.UTF_8));
 			byte[] signatureBytes = Base64.getDecoder().decode(signature);
 			return publicSignature.verify(signatureBytes);
-		} catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+		} catch (Exception e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S004.name(), ErrorCode.GATEWAY_S004.getErrorMsg(), e);
 		}
 	}
