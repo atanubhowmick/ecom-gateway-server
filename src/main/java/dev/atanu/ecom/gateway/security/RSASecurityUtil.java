@@ -30,7 +30,7 @@ public class RSASecurityUtil {
 	private RSASecurityUtil() {
 		// Private Constructor
 	}
-
+	
 	/**
 	 * 
 	 * @return {@link SecurityKeyDetails}
@@ -43,8 +43,8 @@ public class RSASecurityUtil {
 		SecurityKeyDetails keyDetails = new SecurityKeyDetails();
 		keyDetails.setPublicKey(keyPair.getPublic());
 		keyDetails.setPrivateKey(keyPair.getPrivate());
-		keyDetails.setAlgorithm(SecurityConstant.ENCRYPTION_ALGORITHM_RSA);
-		keyDetails.setKeySize(SecurityConstant.ENCRYPTION_LENGTH);
+		keyDetails.setAlgorithm(SecurityConstant.ENCRYPTION_RSA);
+		keyDetails.setKeySize(SecurityConstant.RSA_KEY_LENGTH);
 		keyDetails.setPublicKeyString(Base64.getEncoder().encodeToString(publicKeybyte));
 		keyDetails.setPrivateKeyString(Base64.getEncoder().encodeToString(privateKeybyte));
 		String randomString = RandomStringGenerator.getRandomString(SecurityConstant.OFFSET_LENGTH);
@@ -61,8 +61,8 @@ public class RSASecurityUtil {
 	 */
 	private static KeyPair generateKeyPair() {
 		try {
-			KeyPairGenerator generator = KeyPairGenerator.getInstance(SecurityConstant.ENCRYPTION_ALGORITHM_RSA);
-			generator.initialize(SecurityConstant.ENCRYPTION_LENGTH, new SecureRandom());
+			KeyPairGenerator generator = KeyPairGenerator.getInstance(SecurityConstant.ENCRYPTION_RSA);
+			generator.initialize(SecurityConstant.RSA_KEY_LENGTH, new SecureRandom());
 			return generator.generateKeyPair();
 		} catch (NoSuchAlgorithmException e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S001.name(), ErrorCode.GATEWAY_S001.getErrorMsg(), e);
@@ -78,7 +78,7 @@ public class RSASecurityUtil {
 	 */
 	public static String encrypt(String plainText, PublicKey publicKey) {
 		try {
-			Cipher encryptCipher = Cipher.getInstance(SecurityConstant.ENCRYPTION_PADDING_RSA);
+			Cipher encryptCipher = Cipher.getInstance(SecurityConstant.RSA_ENCRYPT_ALGORITHM);
 			encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
 			byte[] cipherText = encryptCipher.doFinal(plainText.getBytes(StandardCharsets.UTF_8));
 			return Base64.getEncoder().encodeToString(cipherText);
@@ -114,7 +114,7 @@ public class RSASecurityUtil {
 	 */
 	private static String sign(String plainText, PrivateKey privateKey) {
 		try {
-			Signature privateSignature = Signature.getInstance(SecurityConstant.SIGNATURE_RSA_SHA);
+			Signature privateSignature = Signature.getInstance(SecurityConstant.RSA_SIGNATURE_SHA);
 			privateSignature.initSign(privateKey);
 			privateSignature.update(plainText.getBytes(StandardCharsets.UTF_8));
 			byte[] signature = privateSignature.sign();
@@ -134,7 +134,7 @@ public class RSASecurityUtil {
 	 */
 	public static boolean verify(String plainText, String signature, PublicKey publicKey) {
 		try {
-			Signature publicSignature = Signature.getInstance(SecurityConstant.SIGNATURE_RSA_SHA);
+			Signature publicSignature = Signature.getInstance(SecurityConstant.RSA_SIGNATURE_SHA);
 			publicSignature.initVerify(publicKey);
 			publicSignature.update(plainText.getBytes(StandardCharsets.UTF_8));
 			byte[] signatureBytes = Base64.getDecoder().decode(signature);
