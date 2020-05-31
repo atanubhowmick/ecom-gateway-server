@@ -4,6 +4,7 @@
 package dev.atanu.ecom.gateway.security;
 
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -11,6 +12,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 import javax.crypto.Cipher;
@@ -19,7 +23,8 @@ import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.exception.GatewayException;
 
 /**
- * Class for RSA Security <br>
+ * A class to perform RSA encryption and decryption
+ * <br>
  * {@link https://niels.nu/blog/2016/java-rsa.html}
  * 
  * @author Atanu Bhowmick
@@ -30,7 +35,7 @@ public class RSASecurityUtil {
 	private RSASecurityUtil() {
 		// Private Constructor
 	}
-	
+
 	/**
 	 * 
 	 * @return {@link SecurityKeyDetails}
@@ -70,6 +75,23 @@ public class RSASecurityUtil {
 	}
 
 	/**
+	 * Encrypt using public key string
+	 * 
+	 * @param plainText
+	 * @param publicKey
+	 * @return Cipher Text
+	 */
+	public static String encrypt(String plainText, String publicKey) {
+		try {
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			PublicKey pubKey = keyFactory.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)));
+			return encrypt(plainText, pubKey);
+		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+			throw new GatewayException(ErrorCode.GATEWAY_S002.name(), ErrorCode.GATEWAY_S002.getErrorMsg(), e);
+		}
+	}
+
+	/**
 	 * Encrypt Plain Text
 	 * 
 	 * @param plainText
@@ -87,6 +109,17 @@ public class RSASecurityUtil {
 		}
 	}
 
+	public static String decrypt(String cipherText, String privateKey) {
+		try {
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			PrivateKey privKey = keyFactory
+					.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)));
+			return decrypt(cipherText, privKey);
+		} catch (Exception e) {
+			throw new GatewayException(ErrorCode.GATEWAY_S003.name(), ErrorCode.GATEWAY_S003.getErrorMsg(), e);
+		}
+	}
+
 	/**
 	 * Decrypt the encrypted text
 	 * 
@@ -97,7 +130,7 @@ public class RSASecurityUtil {
 	public static String decrypt(String cipherText, PrivateKey privateKey) {
 		try {
 			byte[] bytes = Base64.getDecoder().decode(cipherText);
-			Cipher decriptCipher = Cipher.getInstance(SecurityConstant.DECRYPTION_PADDING_RSA);
+			Cipher decriptCipher = Cipher.getInstance(SecurityConstant.RSA_ENCRYPT_ALGORITHM);
 			decriptCipher.init(Cipher.DECRYPT_MODE, privateKey);
 			return new String(decriptCipher.doFinal(bytes), StandardCharsets.UTF_8);
 		} catch (Exception e) {
