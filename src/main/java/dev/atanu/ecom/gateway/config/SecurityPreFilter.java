@@ -31,6 +31,7 @@ import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.dto.ErrorResponse;
 import dev.atanu.ecom.gateway.dto.GatewayRequest;
 import dev.atanu.ecom.gateway.dto.GenericResponse;
+import dev.atanu.ecom.gateway.security.AESSecurityUtil;
 import dev.atanu.ecom.gateway.security.RSASecurityUtil;
 import dev.atanu.ecom.gateway.security.SecurityConstant;
 import dev.atanu.ecom.gateway.security.SecurityKeyDetails;
@@ -100,19 +101,22 @@ public class SecurityPreFilter extends ZuulFilter {
 				if (keyMap.containsKey(gatewayRequest.getOffset())) {
 					SecurityKeyDetails keyDetails = keyMap.get(gatewayRequest.getOffset());
 					keyMap.remove(gatewayRequest.getOffset());
-					String requestBody = RSASecurityUtil.decrypt(body, keyDetails.getPrivateKey());
+					String keyHeader = request.getHeader("key");
+					String key = RSASecurityUtil.decrypt(keyHeader, keyDetails.getPrivateKeyString());
+					String requestBody = AESSecurityUtil.decrypt(body, key.toCharArray());
 					context.set("requestEntity",
 							new ByteArrayInputStream(requestBody.getBytes(StandardCharsets.UTF_8)));
 				} else {
 					logger.error("Key details expired from cache");
 					context.setSendZuulResponse(false);
-					context.setResponseBody(this.generateErrorResponse(ErrorCode.GATEWAY_E003, HttpStatus.FORBIDDEN));
 					response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+					context.setResponseBody(this.generateErrorResponse(ErrorCode.GATEWAY_E003, HttpStatus.FORBIDDEN));
 				}
 			}
 		} catch (Exception e) {
 			logger.error("Unable to decrypt request body", e);
 			context.setSendZuulResponse(false);
+			response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 			context.setResponseBody(this.generateErrorResponse(ErrorCode.GATEWAY_S003, HttpStatus.BAD_REQUEST));
 		}
 	}

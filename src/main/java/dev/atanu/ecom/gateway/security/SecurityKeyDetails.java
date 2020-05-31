@@ -3,9 +3,7 @@
  */
 package dev.atanu.ecom.gateway.security;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
-
+import dev.atanu.ecom.gateway.dto.AbstractBaseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,14 +17,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class SecurityKeyDetails {
+public class SecurityKeyDetails extends AbstractBaseDTO {
 
-	private String algorithm;
-	private int keySize;
+	private static final long serialVersionUID = 3500935564698587875L;
+
 	private String offset;
 	private String signature;
-	private PublicKey publicKey;
-	private PrivateKey privateKey;
 	private String publicKeyString;
 	private String privateKeyString;
 

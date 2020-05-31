@@ -12,7 +12,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
@@ -23,8 +22,7 @@ import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.exception.GatewayException;
 
 /**
- * A class to perform RSA encryption and decryption
- * <br>
+ * A class to perform RSA encryption and decryption <br>
  * {@link https://niels.nu/blog/2016/java-rsa.html}
  * 
  * @author Atanu Bhowmick
@@ -46,15 +44,8 @@ public class RSASecurityUtil {
 		byte[] privateKeybyte = keyPair.getPrivate().getEncoded();
 
 		SecurityKeyDetails keyDetails = new SecurityKeyDetails();
-		keyDetails.setPublicKey(keyPair.getPublic());
-		keyDetails.setPrivateKey(keyPair.getPrivate());
-		keyDetails.setAlgorithm(SecurityConstant.ENCRYPTION_RSA);
-		keyDetails.setKeySize(SecurityConstant.RSA_KEY_LENGTH);
 		keyDetails.setPublicKeyString(Base64.getEncoder().encodeToString(publicKeybyte));
 		keyDetails.setPrivateKeyString(Base64.getEncoder().encodeToString(privateKeybyte));
-		String randomString = RandomStringGenerator.getRandomString(SecurityConstant.OFFSET_LENGTH);
-		keyDetails.setSignature(sign(randomString, keyPair.getPrivate()));
-		keyDetails.setOffset(RandomStringGenerator.getRandomString(64));
 
 		return keyDetails;
 	}
@@ -82,13 +73,7 @@ public class RSASecurityUtil {
 	 * @return Cipher Text
 	 */
 	public static String encrypt(String plainText, String publicKey) {
-		try {
-			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-			PublicKey pubKey = keyFactory.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)));
-			return encrypt(plainText, pubKey);
-		} catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-			throw new GatewayException(ErrorCode.GATEWAY_S002.name(), ErrorCode.GATEWAY_S002.getErrorMsg(), e);
-		}
+		return encrypt(plainText, getPublicKey(publicKey));
 	}
 
 	/**
@@ -111,10 +96,7 @@ public class RSASecurityUtil {
 
 	public static String decrypt(String cipherText, String privateKey) {
 		try {
-			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-			PrivateKey privKey = keyFactory
-					.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)));
-			return decrypt(cipherText, privKey);
+			return decrypt(cipherText, getPrivateKey(privateKey));
 		} catch (Exception e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S003.name(), ErrorCode.GATEWAY_S003.getErrorMsg(), e);
 		}
@@ -139,6 +121,17 @@ public class RSASecurityUtil {
 	}
 
 	/**
+	 * Sign using private key string
+	 * 
+	 * @param plainText
+	 * @param privateKey
+	 * @return signature
+	 */
+	public static String sign(String plainText, String privateKey) {
+		return sign(plainText, getPrivateKey(privateKey));
+	}
+
+	/**
 	 * Sign with Private Key
 	 * 
 	 * @param plainText
@@ -158,14 +151,26 @@ public class RSASecurityUtil {
 	}
 
 	/**
-	 * Verify Sign with Public Key
+	 * Verify Signature with Public Key
 	 * 
 	 * @param plainText
 	 * @param signature
 	 * @param publicKey
 	 * @return boolean - verifiedSign
 	 */
-	public static boolean verify(String plainText, String signature, PublicKey publicKey) {
+	public static boolean verify(String plainText, String signature, String publicKey) {
+		return verify(plainText, signature, getPublicKey(publicKey));
+	}
+
+	/**
+	 * Verify Signature with Public Key
+	 * 
+	 * @param plainText
+	 * @param signature
+	 * @param publicKey
+	 * @return boolean - verifiedSign
+	 */
+	private static boolean verify(String plainText, String signature, PublicKey publicKey) {
 		try {
 			Signature publicSignature = Signature.getInstance(SecurityConstant.RSA_SIGNATURE_SHA);
 			publicSignature.initVerify(publicKey);
@@ -174,6 +179,36 @@ public class RSASecurityUtil {
 			return publicSignature.verify(signatureBytes);
 		} catch (Exception e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S004.name(), ErrorCode.GATEWAY_S004.getErrorMsg(), e);
+		}
+	}
+
+	/**
+	 * Get PublicKey from String
+	 * 
+	 * @param publicKey
+	 * @return PublicKey
+	 */
+	private static PublicKey getPublicKey(String publicKey) {
+		try {
+			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			return keyFactory.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)));
+		} catch (Exception e) {
+			throw new GatewayException(ErrorCode.GATEWAY_S001.name(), ErrorCode.GATEWAY_S001.getErrorMsg(), e);
+		}
+	}
+
+	/**
+	 * Get PrivateKey from String
+	 * 
+	 * @param privateKey
+	 * @return PrivateKey
+	 */
+	private static PrivateKey getPrivateKey(String privateKey) {
+		try {
+			KeyFactory keyFactory = KeyFactory.getInstance(SecurityConstant.ENCRYPTION_RSA);
+			return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)));
+		} catch (Exception e) {
+			throw new GatewayException(ErrorCode.GATEWAY_S001.name(), ErrorCode.GATEWAY_S001.getErrorMsg(), e);
 		}
 	}
 }

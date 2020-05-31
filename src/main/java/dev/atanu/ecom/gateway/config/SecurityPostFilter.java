@@ -32,6 +32,7 @@ import dev.atanu.ecom.gateway.constant.ErrorCode;
 import dev.atanu.ecom.gateway.dto.ErrorResponse;
 import dev.atanu.ecom.gateway.dto.GenericResponse;
 import dev.atanu.ecom.gateway.security.RSASecurityUtil;
+import dev.atanu.ecom.gateway.security.RandomStringGenerator;
 import dev.atanu.ecom.gateway.security.SecurityConstant;
 import dev.atanu.ecom.gateway.security.SecurityKeyDetails;
 import dev.atanu.ecom.gateway.util.GatewayUtil;
@@ -97,11 +98,15 @@ public class SecurityPostFilter extends ZuulFilter {
 		HttpServletResponse httpResponse = context.getResponse();
 		try {
 			SecurityKeyDetails keyDetails = RSASecurityUtil.generateKeys();
-			offset = keyDetails.getOffset();
 			IMap<String, SecurityKeyDetails> keyMap = hazelcastInstance.getMap(SecurityConstant.SECURITY_KEY_MAP);
-			while (keyMap.containsKey(offset)) {
-				keyDetails = RSASecurityUtil.generateKeys();
+			String randomString = RandomStringGenerator.getRandomString(SecurityConstant.OFFSET_LENGTH);
+			while (keyMap.containsKey(randomString)) {
+				randomString = RandomStringGenerator.getRandomString(SecurityConstant.OFFSET_LENGTH);
 			}
+			offset = randomString;
+			keyDetails.setOffset(offset);
+			keyDetails.setSignature(RSASecurityUtil.sign(offset, keyDetails.getPrivateKeyString()));
+
 			httpResponse.setHeader("signature", keyDetails.getSignature());
 			httpResponse.setHeader("publicKey", keyDetails.getPublicKeyString());
 			keyMap.lock(offset);

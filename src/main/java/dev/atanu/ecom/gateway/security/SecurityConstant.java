@@ -28,5 +28,5 @@ public class SecurityConstant {
 	public static final String SECRET_KEY_FACTORY_ALGORITHM 				= "PBKDF2WithHmacSHA1";
 	
 	public static final int OFFSET_LENGTH									= 64;
-	public static final String SECURITY_KEY_MAP								= "GATEWAY_SECURITY_KEY_MAP";
+	public static final String SECURITY_KEY_MAP								= "ECOM_GATEWAY_SECURITY_KEY_MAP";
 }

@@ -15,6 +15,7 @@ public class GatewayConstant {
 	
 	public static final String EMPTY_STRING		 		= "";
 	public static final String HYPHEN		 			= "-";
-	public static final String API_HIT_MAP_KEY 			= "ecom_gateway_hit_limit_map";
+	
+	public static final String API_HIT_MAP_KEY 			= "ECOM_GATEWAY_HIT_LIMIT_MAP";
 	
 }
