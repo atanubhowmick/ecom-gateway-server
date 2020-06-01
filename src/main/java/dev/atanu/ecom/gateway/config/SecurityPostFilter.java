@@ -3,7 +3,6 @@
  */
 package dev.atanu.ecom.gateway.config;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
@@ -66,15 +65,11 @@ public class SecurityPostFilter extends ZuulFilter {
 	@Override
 	public Object run() throws ZuulException {
 		RequestContext context = RequestContext.getCurrentContext();
-		try {
-			if (decryptRequest) {
-				this.setPublicKey(context);
-			}
-			if (encryptResponse) {
-				this.encryptResponse(context);
-			}
-		} catch (IOException e) {
-			logger.error("Exception occured..", e);
+		if (decryptRequest) {
+			this.setPublicKey(context);
+		}
+		if (encryptResponse) {
+			this.encryptResponse(context);
 		}
 		return null;
 	}
@@ -92,6 +87,13 @@ public class SecurityPostFilter extends ZuulFilter {
 	}
 
 	/**
+	 * Send public key to client application for request encryption. Will also be
+	 * sending offset as unique identifier of public, private key pair to retrieve
+	 * the private key from cache to decrypt the encripted request.
+	 * 
+	 * <br>
+	 * Http Header - publicKey <br>
+	 * Http Header - signature
 	 * 
 	 * @param context
 	 */
@@ -120,10 +122,18 @@ public class SecurityPostFilter extends ZuulFilter {
 	}
 
 	/**
+	 * Encrypt response with AES algorithm (Password based) and the password is
+	 * encrypted with RSA algorithm. To encrypt the data, Public key is required
+	 * from client application. And to verify the public key Signature is also
+	 * required. So the public key, signature and identifier are expected in request
+	 * headers. <br>
+	 * Http Header - publicKey <br>
+	 * Http Header - signature <br>
+	 * Http Header - identifier
+	 * 
 	 * @param context
-	 * @throws IOException
 	 */
-	private void encryptResponse(RequestContext context) throws IOException {
+	private void encryptResponse(RequestContext context) {
 		HttpServletRequest request = context.getRequest();
 		HttpServletResponse response = context.getResponse();
 
