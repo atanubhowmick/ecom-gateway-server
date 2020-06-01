@@ -20,6 +20,6 @@ public class GatewayResponse extends AbstractBaseDTO {
 
 	private static final long serialVersionUID = -1848648610093950624L;
 
-	private String offset;
+	private String identifier;
 	private String encPayload;
 }
