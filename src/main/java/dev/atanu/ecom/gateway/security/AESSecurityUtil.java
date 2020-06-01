@@ -22,8 +22,7 @@ import dev.atanu.ecom.gateway.exception.GatewayException;
 /**
  * A class to perform password-based AES encryption and decryption in CBC mode.
  * 256-bit AES encryption are being used which is permitted by the Java
- * runtime's jurisdiction policy files. 
- * <br>
+ * runtime's jurisdiction policy files. <br>
  * {@link https://proandroiddev.com/security-best-practices-symmetric-encryption-with-aes-in-java-7616beaaade9}
  * <br>
  * {@link https://stackoverflow.com/questions/44878997/handling-of-iv-and-salt-in-java-encryption-and-decryption}
@@ -43,14 +42,14 @@ public class AESSecurityUtil {
 	 * Encrypt plain text using AES
 	 * 
 	 * @param plainText
-	 * @param key (Password)
+	 * @param key       (Password)
 	 * @return cipher text
 	 */
 	public static String encrypt(String plainText, char[] key) {
 		try {
 			byte[] salt = getSalt();
 			SecretKeySpec secretKeySpec = getSecretKeySpec(salt, key);
-			
+
 			// AES initialization
 			Cipher cipher = Cipher.getInstance(SecurityConstant.AES_ENCRYPT_ALGORITHM);
 			cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
@@ -79,7 +78,7 @@ public class AESSecurityUtil {
 	 * Decrypt the cipher text usin AES
 	 * 
 	 * @param cipherText
-	 * @param key (Password)
+	 * @param key        (Password)
 	 * @return Decrypted Text
 	 */
 	public static String decrypt(String cipherText, char[] key) {
