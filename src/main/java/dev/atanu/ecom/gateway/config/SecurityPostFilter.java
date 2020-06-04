@@ -5,6 +5,7 @@ package dev.atanu.ecom.gateway.config;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
@@ -89,7 +90,7 @@ public class SecurityPostFilter extends ZuulFilter {
 	/**
 	 * Send public key to client application for request encryption. Will also be
 	 * sending offset as unique identifier of public, private key pair to retrieve
-	 * the private key from cache to decrypt the encripted request.
+	 * the private key from cache to decrypt the encrypted request.
 	 * 
 	 * <br>
 	 * Http Header - publicKey <br>
@@ -117,7 +118,7 @@ public class SecurityPostFilter extends ZuulFilter {
 			keyMap.unlock(offset);
 		} catch (Exception e) {
 			logger.error("Unable set public key in response header", e);
-			this.generateErrorResponse(context, ErrorCode.GATEWAY_S001, HttpStatus.BAD_GATEWAY);
+			this.sendErrorResponse(context, ErrorCode.GATEWAY_S001, HttpStatus.BAD_GATEWAY);
 		}
 	}
 
@@ -152,19 +153,22 @@ public class SecurityPostFilter extends ZuulFilter {
 				String body = StreamUtils.copyToString(in, StandardCharsets.UTF_8);
 				boolean publicKeyVerified = RSASecurityUtil.verify(identifier, signature, publicKey);
 				if (publicKeyVerified) {
-					String key = RandomStringGenerator.getRandomString(SecurityConstant.OFFSET_LENGTH);
+					SecureRandom random = new SecureRandom();
+					int len = Integer.max(SecurityConstant.MIN_PHRASE_LEN,
+							random.nextInt(SecurityConstant.MAX_PHRASE_LEN));
+					String key = RandomStringGenerator.getRandomString(len);
 					String encryptedBody = AESSecurityUtil.encrypt(body, key.toCharArray());
 					String encryptedKey = RSASecurityUtil.encrypt(key, publicKey);
-					response.setHeader(GatewayConstant.HTTP_HEADER_KEY, encryptedKey);
+					response.setHeader(GatewayConstant.HTTP_HEADER_PASS_PHRASE, encryptedKey);
 					GatewayResponse gatewayResponse = new GatewayResponse(identifier, encryptedBody);
 					context.setResponseBody(GatewayUtil.toJson(gatewayResponse));
 				} else {
 					logger.error("Unable to verify sign");
-					this.generateErrorResponse(context, ErrorCode.GATEWAY_S005, HttpStatus.BAD_REQUEST);
+					this.sendErrorResponse(context, ErrorCode.GATEWAY_S005, HttpStatus.BAD_REQUEST);
 				}
 			} catch (Exception e) {
 				logger.error("Unexcepted error occured", e);
-				this.generateErrorResponse(context, ErrorCode.GATEWAY_E500, HttpStatus.INTERNAL_SERVER_ERROR);
+				this.sendErrorResponse(context, ErrorCode.GATEWAY_E500, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 		}
 	}
@@ -176,7 +180,7 @@ public class SecurityPostFilter extends ZuulFilter {
 	 * @param errorCode
 	 * @param httpStatus
 	 */
-	private void generateErrorResponse(RequestContext context, ErrorCode errorCode, HttpStatus httpStatus) {
+	private void sendErrorResponse(RequestContext context, ErrorCode errorCode, HttpStatus httpStatus) {
 		ErrorResponse errorResponse = new ErrorResponse(errorCode.name(), errorCode.getErrorMsg(), httpStatus);
 		GenericResponse<?> response = new GenericResponse<>();
 		response.setError(errorResponse);

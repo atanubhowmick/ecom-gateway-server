@@ -87,7 +87,7 @@ public class SecurityPreFilter extends ZuulFilter {
 	 * expected in request header and offset in request body.
 	 * 
 	 * <br>
-	 * Http Header - key (Password) <br>
+	 * Http Header - passPhrase <br>
 	 * Http Header - requestEncrypted (boolean)
 	 * 
 	 * @param context
@@ -95,10 +95,10 @@ public class SecurityPreFilter extends ZuulFilter {
 	private void decryptRequest(RequestContext context) {
 		HttpServletRequest request = context.getRequest();
 		String requestEncrypted = request.getHeader(GatewayConstant.HTTP_HEADER_REQUEST_ENCRYPTED);
-		String keyHeader = request.getHeader(GatewayConstant.HTTP_HEADER_KEY);
+		String phrase = request.getHeader(GatewayConstant.HTTP_HEADER_PASS_PHRASE);
 
 		try {
-			if (GatewayConstant.TRUE.equalsIgnoreCase(requestEncrypted) && !StringUtils.isEmpty(keyHeader)) {
+			if (GatewayConstant.TRUE.equalsIgnoreCase(requestEncrypted) && !StringUtils.isEmpty(phrase)) {
 				InputStream in = (InputStream) context.get(GatewayConstant.REQUEST_ENTITY);
 				if (in == null) {
 					in = request.getInputStream();
@@ -113,19 +113,19 @@ public class SecurityPreFilter extends ZuulFilter {
 						SecurityKeyDetails keyDetails = keyMap.get(gatewayRequest.getOffset());
 						keyMap.remove(gatewayRequest.getOffset());
 
-						String key = RSASecurityUtil.decrypt(keyHeader, keyDetails.getPrivateKeyString());
-						String requestBody = AESSecurityUtil.decrypt(body, key.toCharArray());
+						String requestBody = AESSecurityUtil.decrypt(body,
+								RSASecurityUtil.decrypt(phrase, keyDetails.getPrivateKeyString()).toCharArray());
 						context.set(GatewayConstant.REQUEST_ENTITY,
 								new ByteArrayInputStream(requestBody.getBytes(StandardCharsets.UTF_8)));
 					} else {
 						logger.error("Key details expired from cache");
-						this.generateErrorResponse(context, ErrorCode.GATEWAY_E003, HttpStatus.FORBIDDEN);
+						this.sendErrorResponse(context, ErrorCode.GATEWAY_E003, HttpStatus.FORBIDDEN);
 					}
 				}
 			}
 		} catch (Exception e) {
 			logger.error("Unable to decrypt request body", e);
-			this.generateErrorResponse(context, ErrorCode.GATEWAY_S003, HttpStatus.BAD_REQUEST);
+			this.sendErrorResponse(context, ErrorCode.GATEWAY_S003, HttpStatus.BAD_REQUEST);
 		}
 	}
 
@@ -136,7 +136,7 @@ public class SecurityPreFilter extends ZuulFilter {
 	 * @param errorCode
 	 * @param httpStatus
 	 */
-	private void generateErrorResponse(RequestContext context, ErrorCode errorCode, HttpStatus httpStatus) {
+	private void sendErrorResponse(RequestContext context, ErrorCode errorCode, HttpStatus httpStatus) {
 		ErrorResponse errorResponse = new ErrorResponse(errorCode.name(), errorCode.getErrorMsg(), httpStatus);
 		GenericResponse<?> response = new GenericResponse<>();
 		response.setError(errorResponse);

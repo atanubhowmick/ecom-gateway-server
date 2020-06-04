@@ -20,7 +20,8 @@ public class GatewayConstant {
 	public static final String TRUE		 									= "true";
 	public static final String FALSE		 								= "false";
 	
-	public static final String HTTP_HEADER_KEY 								= "key";
+	// HTTP Header Constants
+	public static final String HTTP_HEADER_PASS_PHRASE 						= "passPhrase";
 	public static final String HTTP_HEADER_PUBLIC_KEY						= "publicKey";
 	public static final String HTTP_HEADER_SIGNATURE						= "signature";
 	public static final String HTTP_HEADER_IDENTIFIER						= "identifier";

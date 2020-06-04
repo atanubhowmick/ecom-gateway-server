@@ -27,6 +27,8 @@ public class SecurityConstant {
 	public static final String AES_ENCRYPT_ALGORITHM 						= "AES/CBC/PKCS5Padding";
 	public static final String SECRET_KEY_FACTORY_ALGORITHM 				= "PBKDF2WithHmacSHA1";
 	
+	public static final int MIN_PHRASE_LEN									= 8;
+	public static final int MAX_PHRASE_LEN									= 32;
 	public static final int OFFSET_LENGTH									= 64;
 	public static final String SECURITY_KEY_MAP								= "ECOM_GATEWAY_SECURITY_KEY_MAP";
 }
