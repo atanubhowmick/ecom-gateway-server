@@ -44,6 +44,7 @@ public class AESGCMSecurityUtil {
 			byte[] salt = getSalt();
 			SecretKeySpec secretKeySpec = getSecretKeySpec(salt, password);
 
+			// GCM Parameters
 			final byte[] nonce = getNonce();
 			GCMParameterSpec gcmParameterSpec = new GCMParameterSpec(SecurityConstant.GCM_PARAM_SPEC_LEN, nonce);
 
@@ -118,7 +119,7 @@ public class AESGCMSecurityUtil {
 	/**
 	 * Generate nonce dynamically with random number
 	 * 
-	 * @return salt
+	 * @return nonce
 	 */
 	private static byte[] getNonce() {
 		SecureRandom random = new SecureRandom();
