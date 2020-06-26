@@ -32,13 +32,6 @@ public class AESGCMSecurityUtil {
 		// Private constructor
 	}
 
-	public static void main(String[] args) {
-		String enc = encrypt("Atanu", "pass".toCharArray());
-		System.out.println(enc);
-		String dec = decrypt(enc, "pass".toCharArray());
-		System.out.println(dec);
-	}
-
 	/**
 	 * Encrypt plain text using AES GCM No Padding
 	 * 
