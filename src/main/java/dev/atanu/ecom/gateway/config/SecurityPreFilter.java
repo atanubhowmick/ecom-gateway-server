@@ -83,7 +83,7 @@ public class SecurityPreFilter extends ZuulFilter {
 	 * Request is encrypted AES algorithm(Password based) and the password of AES
 	 * are encrypted with RSA (Hybrid RSA algorithm). The public key was generated
 	 * and shared with previous response. Decrypt the request with private key
-	 * whichs is present in cache and remove the key from cache. The encrypted
+	 * which is present in cache and remove the key from cache. The encrypted
 	 * password is expected in request header and offset in request body.
 	 * 
 	 * <br>

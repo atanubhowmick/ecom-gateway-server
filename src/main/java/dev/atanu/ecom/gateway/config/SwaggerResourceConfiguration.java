@@ -35,13 +35,14 @@ public class SwaggerResourceConfiguration implements SwaggerResourcesProvider {
 	}
 
 	/**
+	 * Get Swagger Resource
 	 * 
 	 * @param name
 	 * @param location
 	 * @param version
 	 * @return SwaggerResource
 	 */
-	private static SwaggerResource getSwaggerResource(String name, String location, String version) {
+	private SwaggerResource getSwaggerResource(String name, String location, String version) {
 		SwaggerResource resource = new SwaggerResource();
 		resource.setName(name);
 		resource.setLocation(location);

@@ -190,7 +190,7 @@ public class RSASecurityUtil {
 	 */
 	private static PublicKey getPublicKey(String publicKey) {
 		try {
-			KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+			KeyFactory keyFactory = KeyFactory.getInstance(SecurityConstant.ENCRYPTION_RSA);
 			return keyFactory.generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(publicKey)));
 		} catch (Exception e) {
 			throw new GatewayException(ErrorCode.GATEWAY_S001.name(), ErrorCode.GATEWAY_S001.getErrorMsg(), e);
