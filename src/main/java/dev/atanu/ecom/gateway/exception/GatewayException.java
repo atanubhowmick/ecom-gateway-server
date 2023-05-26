@@ -13,8 +13,8 @@ public class GatewayException extends RuntimeException {
 
 	private static final long serialVersionUID = 3102842828601606582L;
 
-	private String errorCode;
-	private String errorMessage;
+	private final String errorCode;
+	private final String errorMessage;
 	private HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
 	public GatewayException(String errorCode, String errorMessage) {
