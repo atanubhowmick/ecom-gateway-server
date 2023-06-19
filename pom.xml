@@ -5,19 +5,20 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.4.RELEASE</version>
+		<version>2.2.6.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.atanu.spring</groupId>
-	<artifactId>gateway-server</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>gateway-server</name>
+	<groupId>dev.atanu.ecom</groupId>
+	<artifactId>ecom-gateway-server</artifactId>
+	<version>1.0.0</version>
+	<name>ecom-gateway-server</name>
 	<description>Gateway server</description>
 
 	<properties>
 		<java.version>1.8</java.version>
-		<spring-cloud.version>Hoxton.SR1</spring-cloud.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<swagger.version>2.9.2</swagger.version>
+		<spring-cloud.version>Hoxton.SR3</spring-cloud.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <resource.directory>src/main/resources</resource.directory>
 	</properties>
 
@@ -27,19 +28,52 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		
+		<!-- Eureka dependency -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
 
+		<!-- Zuul dependency -->
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-netflix-zuul</artifactId>
 		</dependency>
 
+		<!-- Actuator dependency -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+		
+		<!-- Hazlecast Cache -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast-client</artifactId>
+		</dependency>
+		
+		<!-- Lombok dependency -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
+		</dependency>
+		
+		<!-- Swagger2 Dependency -->
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger2</artifactId>
+			<version>${swagger.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.springfox</groupId>
+			<artifactId>springfox-swagger-ui</artifactId>
+			<version>${swagger.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -54,7 +88,8 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	
+
+	<!-- Profiles -->
 	<profiles>
 		<profile>
 			<id>dev</id>
@@ -63,7 +98,7 @@
 			</activation>
 			<properties>
 				<server.port>8086</server.port>
-				<boot.profile>dev</boot.profile>
+				<active.profile>dev</active.profile>
 				<eureka.defaultzone>http://127.0.0.1:8085/eureka/</eureka.defaultzone>
 				<instance.ip>127.0.0.1</instance.ip>
 			</properties>
@@ -72,13 +107,13 @@
 			<id>docker</id>
 			<properties>
 				<server.port>8086</server.port>
-				<boot.profile>docker</boot.profile>
+				<active.profile>docker</active.profile>
 				<eureka.defaultzone>http://172.17.0.1:8085/eureka/</eureka.defaultzone>
 				<instance.ip>172.17.0.1</instance.ip>
 			</properties>
 		</profile>
 	</profiles>
-
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -94,6 +129,7 @@
 				</configuration>
 			</plugin>
 		</plugins>
+		
 		<resources>
 			<!-- https://examples.javacodegeeks.com/enterprise-java/spring/loading-environment-specific-configurations-properties-spring-using-maven-profiles-xml-settings-file-example -->
 			<resource>
