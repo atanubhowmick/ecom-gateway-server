@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>dev.atanu.ecom</groupId>
 	<artifactId>ecom-gateway-server</artifactId>
-	<version>1.0.0.RELEASE</version>
+	<version>1.0.0</version>
 	<name>ecom-gateway-server</name>
 	<description>Gateway server</description>
 
