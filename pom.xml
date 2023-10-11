@@ -108,8 +108,8 @@
 			<properties>
 				<server.port>8086</server.port>
 				<active.profile>docker</active.profile>
-				<eureka.defaultzone>http://172.17.0.1:8085/eureka/</eureka.defaultzone>
-				<instance.ip>172.17.0.1</instance.ip>
+				<eureka.defaultzone>http://127.0.0.1:8085/eureka/</eureka.defaultzone>
+				<instance.ip>127.0.0.1</instance.ip>
 			</properties>
 		</profile>
 	</profiles>
